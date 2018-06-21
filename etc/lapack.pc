@@ -1,0 +1,8 @@
+exec_prefix=${prefix}/bin
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: lapack
+Description: Lapack library
+Cflags: -I${includedir}
+Libs: -L${libdir} -llapack
