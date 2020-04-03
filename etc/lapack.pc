@@ -1,8 +1,3 @@
-exec_prefix=${prefix}/bin
-includedir=${prefix}/include
-libdir=${prefix}/lib
-
-Name: lapack
-Description: Lapack library
-Cflags: -I${includedir}
-Libs: -L${libdir} -llapack
+prefix=/Users/amaricci/opt/lapack/3.8.0/gnu
+prefix=/Users/amaricci/opt/lapack/3.8.0/gnu
+Version:3.8.0

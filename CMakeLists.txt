@@ -40,7 +40,37 @@ ELSE(VERBOSE)
 ENDIF(VERBOSE)
 
 # This executes code that sets the compile flags for DEBUG, RELEASE, and TESTING.
-INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake)
+# This executes code that sets the compile flags for DEBUG, RELEASE, and TESTING.
+# INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake)
+if(CMAKE_Fortran_COMPILER_ID MATCHES GNU) # this is gfortran
+  SET(CMAKE_Fortran_MODDIR_FLAG   "-J")
+  SET(CMAKE_Fortran_FLAGS         "-cpp -ffree-line-length-none") # -mcmodel=large  this is to remove the 2Gb limit of virtual memory allocation
+  SET(CMAKE_Fortran_FLAGS_TESTING "-O2 -funroll-loops")
+  SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -p -g -Wsurprising -Waliasing -fwhole-file -fcheck=all -pedantic -fbacktrace -fbounds-check")
+  SET(CMAKE_Fortran_FLAGS_RELEASE "-O3 -march=native -mtune=native -funroll-loops") 
+  
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel)
+  SET(CMAKE_Fortran_MODDIR_FLAG   "-module ") #remember the ending white space here 
+  SET(CMAKE_Fortran_FLAGS         "-fpp")
+  SET(CMAKE_Fortran_FLAGS_TESTING "-O2 -ftz")
+  SET(CMAKE_Fortran_FLAGS_DEBUG   "-p -O0 -g -fpe1 -warn -debug extended -traceback -check all,noarg_temp_created")
+  SET(CMAKE_Fortran_FLAGS_RELEASE "-O3 -ftz")
+
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES G95)
+  SET(CMAKE_Fortran_MODDIR_FLAG   "-fmod=")
+  SET(CMAKE_Fortran_FLAGS         "-cpp")
+  SET(CMAKE_Fortran_FLAGS_TESTING "-O1  -fsloppy-char")
+  SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -ftrace=full")
+  SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
+  
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES PGI)
+  SET(CMAKE_Fortran_MODDIR_FLAG   "-module ")
+  SET(CMAKE_Fortran_FLAGS         "-")
+  SET(CMAKE_Fortran_FLAGS         "")
+  SET(CMAKE_Fortran_FLAGS_DEBUG   "-g -O0 -Mframe")
+  SET(CMAKE_Fortran_FLAGS_RELEASE "-O3 -mcmodel=medium -fast -Munroll")
+
+endif()
 
 
 
@@ -166,7 +196,7 @@ set(SLASRC
   sgels.f  sgelsd.f sgelss.f sgelsx.f sgelsy.f sgeql2.f sgeqlf.f 
   sgeqp3.f sgeqpf.f sgeqr2.f sgeqr2p.f sgeqrf.f sgeqrfp.f sgerfs.f sgerq2.f sgerqf.f 
   sgesc2.f sgesdd.f sgesv.f  sgesvd.f sgesvx.f sgetc2.f sgetf2.f 
-  sgetrf.f sgetri.f 
+  sgetrf.f sgetrf2.f sgetri.f 
   sgetrs.f sggbak.f sggbal.f sgges.f  sggesx.f sggev.f  sggevx.f 
   sggglm.f sgghrd.f sgglse.f sggqrf.f 
   sggrqf.f sggsvd.f sggsvp.f sgtcon.f sgtrfs.f sgtsv.f  
@@ -191,7 +221,7 @@ set(SLASRC
   sormr3.f sormrq.f sormrz.f sormtr.f spbcon.f spbequ.f spbrfs.f 
   spbstf.f spbsv.f  spbsvx.f 
   spbtf2.f spbtrf.f spbtrs.f spocon.f spoequ.f sporfs.f sposv.f  
-  sposvx.f spotf2.f spotrf.f spotri.f spotrs.f spstrf.f spstf2.f 
+  sposvx.f spotf2.f spotrf.f spotrf2.f spotri.f spotrs.f spstrf.f spstf2.f 
   sppcon.f sppequ.f 
   spprfs.f sppsv.f  sppsvx.f spptrf.f spptri.f spptrs.f sptcon.f 
   spteqr.f sptrfs.f sptsv.f  sptsvx.f spttrs.f sptts2.f srscl.f  
@@ -214,7 +244,7 @@ set(SLASRC
   sgeequb.f ssyequb.f spoequb.f sgbequb.f
   sbbcsd.f slapmr.f sorbdb.f sorcsd.f )
 
-SET(DSLASRC spotrs.f sgetrs.f spotrf.f sgetrf.f) 
+SET(DSLASRC spotrs.f sgetrs.f spotrf.f spotrf2.f sgetrf.f sgetrf2.f) 
 
 SET(SXLASRC  sgesvxx.f sgerfsx.f sla_gerfsx_extended.f sla_geamv.f		
   sla_gercond.f sla_rpvgrw.f ssysvxx.f ssyrfsx.f			
@@ -231,7 +261,7 @@ set(CLASRC
   cgegs.f  cgegv.f  cgehd2.f cgehrd.f cgelq2.f cgelqf.f 
   cgels.f  cgelsd.f cgelss.f cgelsx.f cgelsy.f cgeql2.f cgeqlf.f cgeqp3.f 
   cgeqpf.f cgeqr2.f cgeqr2p.f cgeqrf.f cgeqrfp.f cgerfs.f cgerq2.f cgerqf.f 
-  cgesc2.f cgesdd.f cgesv.f  cgesvd.f cgesvx.f cgetc2.f cgetf2.f cgetrf.f 
+  cgesc2.f cgesdd.f cgesv.f  cgesvd.f cgesvx.f cgetc2.f cgetf2.f cgetrf.f cgetrf2.f 
   cgetri.f cgetrs.f 
   cggbak.f cggbal.f cgges.f  cggesx.f cggev.f  cggevx.f cggglm.f 
   cgghrd.f cgglse.f cggqrf.f cggrqf.f 
@@ -263,7 +293,7 @@ set(CLASRC
   claswp.f clasyf.f clatbs.f clatdf.f clatps.f clatrd.f clatrs.f clatrz.f 
   clatzm.f clauu2.f clauum.f cpbcon.f cpbequ.f cpbrfs.f cpbstf.f cpbsv.f  
   cpbsvx.f cpbtf2.f cpbtrf.f cpbtrs.f cpocon.f cpoequ.f cporfs.f 
-  cposv.f  cposvx.f cpotf2.f cpotrf.f cpotri.f cpotrs.f cpstrf.f cpstf2.f 
+  cposv.f  cposvx.f cpotf2.f cpotrf.f cpotrf2.f cpotri.f cpotrs.f cpstrf.f cpstf2.f 
   cppcon.f cppequ.f cpprfs.f cppsv.f  cppsvx.f cpptrf.f cpptri.f cpptrs.f 
   cptcon.f cpteqr.f cptrfs.f cptsv.f  cptsvx.f cpttrf.f cpttrs.f cptts2.f 
   crot.f   cspcon.f cspmv.f  cspr.f   csprfs.f cspsv.f  
@@ -297,7 +327,7 @@ set(CXLASRC     cgesvxx.f cgerfsx.f cla_gerfsx_extended.f cla_geamv.f
   cla_hercond_c.f cla_hercond_x.f cla_herpvgrw.f 
   cla_lin_berr.f clarscl2.f clascl2.f cla_wwaddw.f)
 
-set(ZCLASRC cpotrs.f cgetrs.f cpotrf.f cgetrf.f) 
+set(ZCLASRC cpotrs.f cgetrs.f cpotrf.f cpotrf2.f cgetrf.f cgetrf2.f) 
 
 set(DLASRC 
   dgbbrd.f dgbcon.f dgbequ.f dgbrfs.f dgbsv.f  
@@ -307,7 +337,7 @@ set(DLASRC
   dgels.f  dgelsd.f dgelss.f dgelsx.f dgelsy.f dgeql2.f dgeqlf.f 
   dgeqp3.f dgeqpf.f dgeqr2.f dgeqr2p.f dgeqrf.f dgeqrfp.f dgerfs.f dgerq2.f dgerqf.f 
   dgesc2.f dgesdd.f dgesv.f  dgesvd.f dgesvx.f dgetc2.f dgetf2.f 
-  dgetrf.f dgetri.f 
+  dgetrf.f dgetrf2.f dgetri.f 
   dgetrs.f dggbak.f dggbal.f dgges.f  dggesx.f dggev.f  dggevx.f 
   dggglm.f dgghrd.f dgglse.f dggqrf.f 
   dggrqf.f dggsvd.f dggsvp.f dgtcon.f dgtrfs.f dgtsv.f  
@@ -332,7 +362,7 @@ set(DLASRC
   dormr3.f dormrq.f dormrz.f dormtr.f dpbcon.f dpbequ.f dpbrfs.f 
   dpbstf.f dpbsv.f  dpbsvx.f 
   dpbtf2.f dpbtrf.f dpbtrs.f dpocon.f dpoequ.f dporfs.f dposv.f  
-  dposvx.f dpotf2.f dpotrf.f dpotri.f dpotrs.f dpstrf.f dpstf2.f 
+  dposvx.f dpotf2.f dpotrf.f dpotrf2.f dpotri.f dpotrs.f dpstrf.f dpstf2.f 
   dppcon.f dppequ.f 
   dpprfs.f dppsv.f  dppsvx.f dpptrf.f dpptri.f dpptrs.f dptcon.f 
   dpteqr.f dptrfs.f dptsv.f  dptsvx.f dpttrs.f dptts2.f drscl.f  
@@ -372,7 +402,7 @@ set(ZLASRC
   zgegs.f  zgegv.f  zgehd2.f zgehrd.f zgelq2.f zgelqf.f 
   zgels.f  zgelsd.f zgelss.f zgelsx.f zgelsy.f zgeql2.f zgeqlf.f zgeqp3.f 
   zgeqpf.f zgeqr2.f zgeqr2p.f zgeqrf.f zgeqrfp.f zgerfs.f zgerq2.f zgerqf.f 
-  zgesc2.f zgesdd.f zgesv.f  zgesvd.f zgesvx.f zgetc2.f zgetf2.f zgetrf.f 
+  zgesc2.f zgesdd.f zgesv.f  zgesvd.f zgesvx.f zgetc2.f zgetf2.f zgetrf.f zgetrf2.f 
   zgetri.f zgetrs.f 
   zggbak.f zggbal.f zgges.f  zggesx.f zggev.f  zggevx.f zggglm.f 
   zgghrd.f zgglse.f zggqrf.f zggrqf.f 
@@ -407,7 +437,7 @@ set(ZLASRC
   zlatbs.f zlatdf.f zlatps.f zlatrd.f zlatrs.f zlatrz.f zlatzm.f zlauu2.f 
   zlauum.f zpbcon.f zpbequ.f zpbrfs.f zpbstf.f zpbsv.f  
   zpbsvx.f zpbtf2.f zpbtrf.f zpbtrs.f zpocon.f zpoequ.f zporfs.f 
-  zposv.f  zposvx.f zpotf2.f zpotrf.f zpotri.f zpotrs.f zpstrf.f zpstf2.f 
+  zposv.f  zposvx.f zpotf2.f zpotrf.f zpotrf2.f zpotri.f zpotrs.f zpstrf.f zpstf2.f 
   zppcon.f zppequ.f zpprfs.f zppsv.f  zppsvx.f zpptrf.f zpptri.f zpptrs.f 
   zptcon.f zpteqr.f zptrfs.f zptsv.f  zptsvx.f zpttrf.f zpttrs.f zptts2.f 
   zrot.f   zspcon.f zspmv.f  zspr.f   zsprfs.f zspsv.f  
